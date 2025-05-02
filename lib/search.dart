@@ -19,7 +19,7 @@ class _SearchPageState extends State<SearchPage> {
   String companyName = "";
   String stockSymbol = "Symbol";
   double displayPrice = 0.0;
-  List<chartData> chartPrices = [];
+  List<ChartData> chartPrices = [];
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   _search(String searchItem) async {
@@ -43,7 +43,7 @@ class _SearchPageState extends State<SearchPage> {
       return;
     }
     try {
-      StockResponse? result = await Stocks_Api.fetchStockInformation(searchItem);
+      StockResponse? result = await StocksApi.fetchStockInformation(searchItem);
       if (result == null) {
         showDialog(
           context: context,
@@ -139,8 +139,8 @@ class _SearchPageState extends State<SearchPage> {
             ElevatedButton(
               onPressed: () => _search(_searchController.text),
               style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll<Color>(Color(0xFFffde59)),
-                shape: WidgetStateProperty.all(
+                backgroundColor: MaterialStateProperty.all<Color>(Color(0xFFffde59)),
+                shape: MaterialStateProperty.all(
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),

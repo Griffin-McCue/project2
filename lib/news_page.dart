@@ -1,9 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'auth_gate.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'stocks_api.dart';
 
 class NewsPage extends StatefulWidget {
@@ -47,20 +44,11 @@ class _NewsPageState extends State<NewsPage> {
   getNews() async {
     await fetchWatchList();
     if (topics.isEmpty) {
-      topics.add("stocks");
-      List<NewsInfo> results = await StocksApi.fetchNewsInformation(topics);  // Only Finnhub API
-      setState(() {
-        newsList = results;
-        isLoading = false;
-      });
-      return;
+      topics.add("stocks");  // Default topic
     }
+    List<NewsInfo> results = await StocksApi.fetchNewsInformation(topics);
     setState(() {
-      isLoading = true;
-    });
-    List<NewsInfo> results = await StocksApi.fetchNewsInformation(topics);  // Only Finnhub API
-    setState(() {
-      newsList = results;
+      newsList = results ?? [];
       isLoading = false;
     });
   }
@@ -105,7 +93,7 @@ class _NewsPageState extends State<NewsPage> {
               ),
             );
           },
-        )
+        ),
       );
     }
   }
