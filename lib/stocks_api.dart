@@ -70,8 +70,12 @@ class StocksApi {
         throw Exception("Error fetching stock profile: ${profile.statusCode}");
       }
 
+      // Generate dynamic UNIX timestamps (in seconds)
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final thirtyDaysAgo = now - (60 * 60 * 24 * 30); // 30 days ago
+
       final chart = await http.get(
-        Uri.parse('https://finnhub.io/api/v1/stock/candle?symbol=$searchItem&resolution=D&from=1609459200&to=1650422400&token=$API_KEY'),
+        Uri.parse('https://finnhub.io/api/v1/stock/candle?symbol=$searchItem&resolution=D&from=$thirtyDaysAgo&to=$now&token=$API_KEY'),
       );
 
       if (chart.statusCode == 200) {
