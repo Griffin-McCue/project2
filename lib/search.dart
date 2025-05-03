@@ -21,35 +21,14 @@ class _SearchPageState extends State<SearchPage> {
   double displayPrice = 0.0;
   List<ChartData> chartPrices = [];
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  List<SymbolSearchResult> _searchSuggestions = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(_onSearchTextChanged);
-  }
-
-  void _onSearchTextChanged() async {
-    final query = _searchController.text.trim();
-    if (query.isNotEmpty) {
-      try {
-        final results = await StocksApi.searchStocks(query);
-        setState(() {
-          _searchSuggestions = results.take(5).toList();
-        });
-      } catch (e) {
-        print("Error fetching search suggestions: $e");
-      }
-    } else {
-      setState(() {
-        _searchSuggestions = [];
-      });
-    }
-  }
 
   _search(String searchItem) async {
+    print("User typed: '$searchItem'");
     searchItem = searchItem.trim();
+    print("Trimmed input: '$searchItem'");
+
     if (searchItem.isEmpty) {
+      print("Search item is empty after trimming.");
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -67,6 +46,7 @@ class _SearchPageState extends State<SearchPage> {
       );
       return;
     }
+
     try {
       StockResponse? result = await StocksApi.fetchStockInformation(searchItem);
       if (result == null) {
@@ -146,13 +126,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   @override
-  void dispose() {
-    _searchController.removeListener(_onSearchTextChanged);
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
@@ -160,30 +133,14 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Autocomplete<SymbolSearchResult>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                return _searchSuggestions.where((option) =>
-                    option.symbol.toLowerCase().contains(textEditingValue.text.toLowerCase()) ||
-                    option.description.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-              },
-              displayStringForOption: (SymbolSearchResult option) =>
-                  '${option.symbol} - ${option.description}',
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                return TextFormField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Search company or symbol',
-                  ),
-                );
-              },
-              onSelected: (SymbolSearchResult selection) {
-                _searchController.text = selection.symbol;
-                _search(selection.symbol);
-              },
+            TextFormField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Stock symbol',
+              ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _search(_searchController.text),
               style: ButtonStyle(
@@ -192,9 +149,9 @@ class _SearchPageState extends State<SearchPage> {
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),
-              child: Text("Confirm", style: TextStyle(color: Colors.black)),
+              child: const Text("Confirm", style: TextStyle(color: Colors.black)),
             ),
-            SizedBox(height: 28),
+            const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -205,35 +162,35 @@ class _SearchPageState extends State<SearchPage> {
                   child: Center(
                     child: Text(
                       stockSymbol,
-                      style: TextStyle(color: Colors.white, fontSize: 25),
+                      style: const TextStyle(color: Colors.white, fontSize: 25),
                     ),
                   ),
                 ),
-                SizedBox(width: 80),
+                const SizedBox(width: 80),
                 Container(
                   color: Colors.black,
                   height: 70.0,
                   width: 140.0,
                   child: Center(
                     child: Text(
-                      '\$${displayPrice.toStringAsFixed(2)}',
-                      style: TextStyle(color: Colors.white, fontSize: 25),
+                      '$displayPrice',
+                      style: const TextStyle(color: Colors.white, fontSize: 25),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               companyName,
-              style: TextStyle(fontSize: 20),
+              style: const TextStyle(fontSize: 20),
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             if (chartPrices.isNotEmpty)
               Container(
                 height: 400,
                 width: 400,
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: LineChart(
                   LineChartData(
                     lineBarsData: [
@@ -248,8 +205,8 @@ class _SearchPageState extends State<SearchPage> {
                         dotData: FlDotData(show: false),
                       ),
                     ],
-                    minY: chartPrices.map((data) => data.currentPrice).reduce((curr, next) => curr < next ? curr : next) - 4,
-                    maxY: chartPrices.map((data) => data.currentPrice).reduce((curr, next) => curr > next ? curr : next) + 4,
+                    minY: chartPrices.map((d) => d.currentPrice).reduce((a, b) => a < b ? a : b) - 4,
+                    maxY: chartPrices.map((d) => d.currentPrice).reduce((a, b) => a > b ? a : b) + 4,
                     titlesData: FlTitlesData(
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
@@ -260,7 +217,7 @@ class _SearchPageState extends State<SearchPage> {
                             if (index >= 0 && index < chartPrices.length) {
                               return Text(chartPrices[index].date);
                             }
-                            return Text('');
+                            return const Text('');
                           },
                         ),
                       ),
@@ -271,7 +228,7 @@ class _SearchPageState extends State<SearchPage> {
                           reservedSize: 50,
                           getTitlesWidget: (value, _) => Text(
                             value.toString(),
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ),
                       ),
@@ -284,12 +241,12 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               )
             else
-              SizedBox(
+              const SizedBox(
                 height: 350,
                 width: 350,
                 child: Center(child: Text("No data searched yet.")),
               ),
-            SizedBox(height: 50),
+            const SizedBox(height: 50),
           ],
         ),
       ),
