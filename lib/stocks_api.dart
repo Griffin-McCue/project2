@@ -36,6 +36,20 @@ class ChartData {
   }
 }
 
+class SymbolSearchResult {
+  final String symbol;
+  final String description;
+
+  SymbolSearchResult({required this.symbol, required this.description});
+
+  factory SymbolSearchResult.fromJson(Map<String, dynamic> json) {
+    return SymbolSearchResult(
+      symbol: json['symbol'] ?? '',
+      description: json['description'] ?? '',
+    );
+  }
+}
+
 class StocksApi {
   static const String API_KEY = "YOUR_FINNHUB_API_KEY"; // Replace with your Finnhub API key
 
@@ -45,7 +59,6 @@ class StocksApi {
     dynamic profileData;
 
     try {
-      // Fetch stock profile information from Finnhub API
       final profile = await http.get(
         Uri.parse('https://finnhub.io/api/v1/stock/profile2?symbol=$searchItem&token=$API_KEY'),
       );
@@ -56,9 +69,8 @@ class StocksApi {
         throw Exception("Error fetching stock profile: ${profile.statusCode}");
       }
 
-      // Fetch stock chart data from Finnhub API
       final chart = await http.get(
-        Uri.parse('https://finnhub.io/api/v1/stock/candle?symbol=$searchItem&resolution=D&from=1609459200&to=1650422400&token=$API_KEY'),  // Example date range
+        Uri.parse('https://finnhub.io/api/v1/stock/candle?symbol=$searchItem&resolution=D&from=1609459200&to=1650422400&token=$API_KEY'),
       );
 
       if (chart.statusCode == 200) {
@@ -102,13 +114,11 @@ class StocksApi {
 
     try {
       for (String topic in topics) {
-        // Replace with actual API call to fetch news based on the topic
         final response = await http.get(
-          Uri.parse('https://some-news-api.com/news?topic=$topic'), // Replace with actual API endpoint
+          Uri.parse('https://some-news-api.com/news?topic=$topic'), // Replace with actual API
         );
 
         if (response.statusCode == 200) {
-          // Assuming the API returns a JSON array with the news articles
           final newsData = json.decode(response.body);
 
           for (var news in newsData) {
@@ -128,6 +138,24 @@ class StocksApi {
     } catch (error) {
       print("Error fetching news information: $error");
       return null;
+    }
+  }
+
+  // 🔍 New: Search for stock symbols using query
+  static Future<List<SymbolSearchResult>> searchStocks(String query) async {
+    final url = Uri.parse('https://finnhub.io/api/v1/search?q=$query&token=$API_KEY');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List results = data['result'] ?? [];
+
+      return results
+          .map((json) => SymbolSearchResult.fromJson(json))
+          .where((item) => item.symbol.isNotEmpty && item.description.isNotEmpty)
+          .toList();
+    } else {
+      throw Exception("Failed to search stocks: ${response.statusCode}");
     }
   }
 }
