@@ -66,6 +66,7 @@ class StocksApi {
       if (profile.statusCode == 200) {
         profileData = json.decode(profile.body);
       } else {
+        print("Error fetching stock profile: ${profile.statusCode} - ${profile.body}");
         throw Exception("Error fetching stock profile: ${profile.statusCode}");
       }
 
@@ -79,6 +80,10 @@ class StocksApi {
 
         final timestamps = chartData['t'] as List;
         final closes = chartData['c'] as List;
+
+        if (timestamps.isEmpty || closes.isEmpty) {
+          print("No chart data returned for $searchItem");
+        }
 
         for (int i = 0; i < timestamps.length; i++) {
           final date = DateTime.fromMillisecondsSinceEpoch(timestamps[i] * 1000);
@@ -100,27 +105,30 @@ class StocksApi {
 
         return currentStock;
       } else {
+        print("Error fetching stock chart data: ${chart.statusCode} - ${chart.body}");
         throw Exception("Error fetching stock chart data: ${chart.statusCode}");
       }
     } catch (error) {
-      print("Error loading stock information: $error");
+      print("Error loading stock information for $searchItem: $error");
       return null;
     }
   }
 
-  // Fetch news information based on topics
+  // 🔍 Fetch stock news information based on topics
   static Future<List<NewsInfo>?> fetchNewsInformation(List<String> topics) async {
     List<NewsInfo> newsList = [];
 
     try {
+      // Loop through each topic in the watchlist and fetch news for each topic
       for (String topic in topics) {
         final response = await http.get(
-          Uri.parse('https://some-news-api.com/news?topic=$topic'), // Replace with actual API
+          Uri.parse('https://finnhub.io/api/v1/news?category=$topic&token=d0aksr9r01qm3l9m5q1gd0aksr9r01qm3l9m5q20'), // Replace with the actual news endpoint from Finnhub
         );
 
         if (response.statusCode == 200) {
           final newsData = json.decode(response.body);
 
+          // Map the news data to NewsInfo objects
           for (var news in newsData) {
             newsList.add(NewsInfo(
               headline: news['headline'],
@@ -130,7 +138,8 @@ class StocksApi {
             ));
           }
         } else {
-          throw Exception("Failed to load news data");
+          print("Error fetching news for topic '$topic': ${response.statusCode} - ${response.body}");
+          throw Exception("Failed to load news data for topic '$topic'");
         }
       }
 
@@ -138,24 +147,6 @@ class StocksApi {
     } catch (error) {
       print("Error fetching news information: $error");
       return null;
-    }
-  }
-
-  // 🔍 New: Search for stock symbols using query
-  static Future<List<SymbolSearchResult>> searchStocks(String query) async {
-    final url = Uri.parse('https://finnhub.io/api/v1/search?q=$query&token=$API_KEY');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List results = data['result'] ?? [];
-
-      return results
-          .map((json) => SymbolSearchResult.fromJson(json))
-          .where((item) => item.symbol.isNotEmpty && item.description.isNotEmpty)
-          .toList();
-    } else {
-      throw Exception("Failed to search stocks: ${response.statusCode}");
     }
   }
 }

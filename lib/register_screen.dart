@@ -32,7 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
-        password: _passwordController.text,
+        password: _passwordController.text.trim(),
       );
 
       final user = credential.user!;
