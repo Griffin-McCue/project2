@@ -51,88 +51,70 @@ class SymbolSearchResult {
 }
 
 class StocksApi {
-  static const String API_KEY = "d0aksr9r01qm3l9m5q1gd0aksr9r01qm3l9m5q20"; // Your Finnhub API key
+  static const String ALPHA_VANTAGE_API_KEY = 'VGP9CB8312IVI1W8';
 
-  // Fetch stock information (profile and chart)
+  // Fetch stock information using Alpha Vantage
   static Future<StockResponse?> fetchStockInformation(String searchItem) async {
-    StockResponse? currentStock;
-    dynamic profileData;
-
     try {
-      final profile = await http.get(
-        Uri.parse('https://finnhub.io/api/v1/stock/profile2?symbol=$searchItem&token=$API_KEY'),
+      final url = Uri.parse(
+        'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=$searchItem&apikey=$ALPHA_VANTAGE_API_KEY',
       );
 
-      if (profile.statusCode == 200) {
-        profileData = json.decode(profile.body);
-      } else {
-        print("Error fetching stock profile: ${profile.statusCode} - ${profile.body}");
-        throw Exception("Error fetching stock profile: ${profile.statusCode}");
+      final response = await http.get(url);
+
+      if (response.statusCode != 200) {
+        print('Error fetching stock data: ${response.statusCode} - ${response.body}');
+        throw Exception('Error fetching stock data');
       }
 
-      // Generate dynamic UNIX timestamps (in seconds)
-      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      final thirtyDaysAgo = now - (60 * 60 * 24 * 30); // 30 days ago
+      final data = json.decode(response.body);
 
-      final chart = await http.get(
-        Uri.parse('https://finnhub.io/api/v1/stock/candle?symbol=$searchItem&resolution=D&from=$thirtyDaysAgo&to=$now&token=$API_KEY'),
+      if (data['Time Series (Daily)'] == null) {
+        print('Invalid response or symbol not found: ${data.toString()}');
+        throw Exception('Invalid response from Alpha Vantage');
+      }
+
+      final timeSeries = data['Time Series (Daily)'] as Map<String, dynamic>;
+
+      List<ChartData> chartInfo = [];
+      for (var entry in timeSeries.entries.take(30)) {
+        final date = entry.key;
+        final dailyData = entry.value as Map<String, dynamic>;
+        final close = double.tryParse(dailyData['4. close']) ?? 0.0;
+
+        chartInfo.add(ChartData(
+          date: date.substring(5), // MM-DD
+          currentPrice: close,
+        ));
+      }
+
+      final latestClose = chartInfo.isNotEmpty ? chartInfo.first.currentPrice : 0.0;
+
+      return StockResponse(
+        stockSymbol: searchItem,
+        stockName: searchItem, // Alpha Vantage free API doesn't return full name
+        currentPrice: latestClose,
+        chartInfo: chartInfo,
       );
-
-      if (chart.statusCode == 200) {
-        final chartData = json.decode(chart.body);
-        List<ChartData> currentChartInfo = [];
-
-        final timestamps = chartData['t'] as List;
-        final closes = chartData['c'] as List;
-
-        if (timestamps.isEmpty || closes.isEmpty) {
-          print("No chart data returned for $searchItem");
-        }
-
-        for (int i = 0; i < timestamps.length; i++) {
-          final date = DateTime.fromMillisecondsSinceEpoch(timestamps[i] * 1000);
-          final dayString = '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
-          currentChartInfo.add(ChartData(
-            date: dayString,
-            currentPrice: closes[i].toDouble(),
-          ));
-        }
-
-        final price = currentChartInfo.isNotEmpty ? currentChartInfo[0].currentPrice : 0.0;
-
-        currentStock = StockResponse(
-          stockSymbol: searchItem,
-          stockName: profileData['name'],
-          currentPrice: price,
-          chartInfo: currentChartInfo,
-        );
-
-        return currentStock;
-      } else {
-        print("Error fetching stock chart data: ${chart.statusCode} - ${chart.body}");
-        throw Exception("Error fetching stock chart data: ${chart.statusCode}");
-      }
-    } catch (error) {
-      print("Error loading stock information for $searchItem: $error");
+    } catch (e) {
+      print('Error loading stock data for $searchItem: $e');
       return null;
     }
   }
 
-  // 🔍 Fetch stock news information based on topics
+  // Fetch news (still using Finnhub for now)
   static Future<List<NewsInfo>?> fetchNewsInformation(List<String> topics) async {
     List<NewsInfo> newsList = [];
 
     try {
-      // Loop through each topic in the watchlist and fetch news for each topic
       for (String topic in topics) {
         final response = await http.get(
-          Uri.parse('https://finnhub.io/api/v1/news?category=$topic&token=d0aksr9r01qm3l9m5q1gd0aksr9r01qm3l9m5q20'), // Replace with the actual news endpoint from Finnhub
+          Uri.parse('https://finnhub.io/api/v1/news?category=$topic&token=d0aksr9r01qm3l9m5q1gd0aksr9r01qm3l9m5q20'),
         );
 
         if (response.statusCode == 200) {
           final newsData = json.decode(response.body);
 
-          // Map the news data to NewsInfo objects
           for (var news in newsData) {
             newsList.add(NewsInfo(
               headline: news['headline'],
