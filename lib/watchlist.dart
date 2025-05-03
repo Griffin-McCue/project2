@@ -19,7 +19,6 @@ class StockProfile {
   final String exchange;
   final String name;
   final String ticker;
-  final String logoUrl;
   final String category;
   final List<ChartData> priceHistory;
 
@@ -29,7 +28,6 @@ class StockProfile {
     required this.exchange,
     required this.name,
     required this.ticker,
-    required this.logoUrl,
     required this.category,
     required this.priceHistory,
   });
@@ -41,7 +39,6 @@ class StockProfile {
       exchange: json['exchange'] ?? '',
       name: json['name'] ?? '',
       ticker: json['ticker'] ?? '',
-      logoUrl: json['logo'] ?? '',
       category: json['finnhubIndustry'] ?? 'Uncategorized',
       priceHistory: history,
     );
@@ -49,9 +46,9 @@ class StockProfile {
 }
 
 Future<List<ChartData>> fetchChartData(String symbol) async {
-  const String AV_KEY = 'Y5M68XBXFU2HZ9H6';
+  const String AV_KEY = 'VGP9CB8312IVI1W8'; // Your provided API key
   final today = DateTime.now();
-  final endDate = today.subtract(const Duration(days: 30)); 
+  final endDate = today.subtract(const Duration(days: 30));
 
   final timeSeries = await http.get(
     Uri.parse('https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=compact&apikey=$AV_KEY'),
@@ -190,10 +187,6 @@ class _WatchlistPageState extends State<WatchlistPage> {
                     children: [
                       Row(
                         children: [
-                          profile.logoUrl.isNotEmpty
-                              ? Image.network(profile.logoUrl, width: 40, height: 40, fit: BoxFit.cover)
-                              : const Icon(Icons.business),
-                          const SizedBox(width: 10),
                           Text(profile.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           const Spacer(),
                           Text(profile.ticker, style: const TextStyle(fontSize: 16)),
@@ -261,8 +254,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                   ),
                 ),
               ),
-            )),
-          ],
+            ))],
         );
       }).toList(),
     );
