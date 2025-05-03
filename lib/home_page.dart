@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_gate.dart';
 import 'search.dart';
 import 'watchlist.dart';
-import 'news.dart';
+import 'news_page.dart'; // Ensure this import points to the correct NewsPage file
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: _signOut,
             ),
           ],
-          backgroundColor: const Color(0xFF5ce1e6), 
+          backgroundColor: const Color(0xFF5ce1e6),
           bottom: const TabBar(
             labelColor: Colors.black,
             labelStyle: TextStyle(fontSize: 20),
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             SearchPage(),
             WatchlistPage(),
-            NewsPage()
+            NewsPage() // Use the imported NewsPage here
           ],
         ),
        ),
