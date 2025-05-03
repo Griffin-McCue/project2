@@ -107,8 +107,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: _registerUser,
                       child: const Text('Register'),
                       style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFffde59)),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      backgroundColor: WidgetStateProperty.all<Color>(const Color(0xFFffde59)),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(7.0),
                         ),
