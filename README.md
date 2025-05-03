@@ -6,7 +6,7 @@ A new Flutter project.
 
 This project is a Flutter application.
 
-[Presentation Link](https://docs.google.com/presentation/d/1o0Jphu9z0UMGcb1yYDF1QB0U5MkXv8lY)
+[Presentation Link](https://youtu.be/goXim2YuQgo)
 
 A few resources to get you started if this is your first Flutter project:
 
