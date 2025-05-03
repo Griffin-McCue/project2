@@ -51,7 +51,7 @@ class SymbolSearchResult {
 }
 
 class StocksApi {
-  static const String API_KEY = "d0aksr9r01qm3l9m5q1gd0aksr9r01qm3l9m5q20"; // Replace with your Finnhub API key
+  static const String API_KEY = "d0aksr9r01qm3l9m5q1gd0aksr9r01qm3l9m5q20"; // Your Finnhub API key
 
   // Fetch stock information (profile and chart)
   static Future<StockResponse?> fetchStockInformation(String searchItem) async {
